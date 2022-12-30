@@ -1,7 +1,7 @@
 # basic-statistics
 
 ## Course Material
-- Statistical Inference [Coursera Eindhoven University of Technology](https://www.coursera.org/learn/statistical-inferences) // [Github](https://github.com/Lakens/statistical_inferences)
+- Statistical Inference [Coursera Eindhoven University of Technology](https://www.coursera.org/learn/statistical-inferences) / [Github](https://github.com/Lakens/statistical_inferences)
 - Machine Learning [Coursera Stanford University](https://www.coursera.org/learn/machine-learning-course)
 - Predictive Modeling [Duke University MSS STA521](https://www2.stat.duke.edu/courses/Fall21/sta521.001/)
 - Bayesian Statistics [Duke University MSS STA602](https://github.com/resteorts/modern-bayes)
