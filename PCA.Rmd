@@ -1,0 +1,167 @@
+---
+title: "PCA"
+author: "Kyungeun Jenny Jeon"
+date: "2023-01-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tibble)
+library(latex2exp)
+```
+
+# Key points
+
+-   Purpose: Dimension reduction, while retaining as much as possible of the variation in the current data
+
+-   Principle: Find the 'most' uncorrelated varible sets using the orthogonality of PC(principal component) directions. PC1 is the maximized variance principal component and PC2 is orthogonal with PC1.
+
+-   Usage : When you face with a large set of correlated variables, PCA make a smaller number of representative variables.
+
+-   Fact check :
+
+1)  PCA is unsupervised learning without Y variable.
+2)  PCA needs a standardization (centered).
+
+-   Important Terminology :
+
+1)  Loadings : A concept of weights of features for PC. The sum of loadings is 1. (Confusing but called PC directions)
+
+-   Formula: \maximize\*{\*\$\\phi11,..,\$\\phip1}{\\\\1/n\$\$\\sum\_{n=1}\^{n} (\$\$\\sum{j=1}\\\^{p} \$\$\\phij1 xij)}\^2 subject to \$\$\sum\_{j=1}\^{p} \$\$\phij1\^2 = 1
+
+2)  PC : A noramlized linear combination of features. (Confusing but called PC scores)
+3)  The way of choosing the right number of PC
+
+-   Screeplot (elbow)
+
+-   Kaiser rule
+
+-   Predetermined amount of variation (PVE) 
+\frac{$\lambda_{1} + ... + $\lambda_{l}}{$\sum_{i=1}^{d}($\lambda_{i})}
+
+
+-   Plots :
+
+1)  Study samples : Scatter plots of data on PC1 vs PC2
+2)  Study features : Scatter plots of loadings
+
+-   Process :
+
+1)  Load data
+2)  Standardize each variable to have mean zero and standard deviation one.
+3)  Make Covariance matrix
+4)  Find the eigenvalues and eigenvectors.
+5)  Order the eigenvalues from big to small one.
+
+-   find a direction v such that maximizes the variance
+-   PC1 is the eigenvector of the covariance matrix with largest eigenvalue.
+
+6)  Use scree plots to decide the number of PC.
+
+-   R package : prcomp(dataname, scale=TRUE)
+
+# Example
+
+## USArrests example
+
+```{r}
+USArrests = as_tibble(USArrests) # load data
+states = row.names(USArrests) # row (states)
+apply(USArrests, 2, mean) # EDA - mean of each variable
+apply(USArrests, 2, var) # EDA - varaianve of each variable
+pr.out <- prcomp(USArrests, scale = TRUE)
+pr.out
+```
+
+```{r}
+pr.out$center # vector of means of the raw data (centroid)
+pr.out$scale # vector of stdev
+pr.out$rotation # loading
+dim(pr.out$x) # 50 rows and 4 variables
+```
+
+```{r}
+biplot(pr.out, scale = 0) # 
+###
+pr.out$rotation = -pr.out$rotation
+pr.out$x = -pr.out$x
+biplot(pr.out, scale = 0)
+```
+
+```{r}
+pr.var <- pr.out$sdev^2
+pve <- pr.var / sum(pr.var)
+pve # Proportion of variance explained(PVE)
+par(mfrow = c(1, 2))
+plot(pve, xlab = "Principal Component",
+    ylab = "Proportion of Variance Explained", ylim = c(0, 1),
+    type = "b")
+plot(cumsum(pve), xlab = "Principal Component",
+    ylab = "Cumulative Proportion of Variance Explained",
+    ylim = c(0, 1), type = "b")
+```
+
+## NBA teams example
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+dataset <- read.csv('/Users/kyungeunjeon/Library/CloudStorage/GoogleDrive-kyungeun.jeon.jenny@gmail.com/My Drive/2022_Fall/STA521/lab/nba-teams-2017.csv')
+variables <- c(
+'wins',
+'losses',
+'points',
+'field_goals',
+'points3',
+'free_throws',
+'off_rebounds',
+'def_rebounds',
+'assists',
+'steals',
+'blocks',
+'personal_fouls')
+dat <- dataset[ ,variables] # choosing only for specific variables
+```
+
+```{r}
+pca_prcomp <- prcomp(dat, scale. = TRUE)
+eigenvalues <- pca_prcomp$sdev^2
+loadings <- pca_prcomp$rotation
+scores <- pca_prcomp$x
+# scree_plot
+eigs_cum <- cumsum(eigenvalues) /sum(eigenvalues)
+# may be useful for plotting
+ggplot() + geom_point(aes(x = 1:length(eigenvalues), y=eigs_cum)) + labs(x = "first PCs", y = "fraction of total variance explained")
+```
+
+```{r}
+# 2D PCA plot : study samples
+ggplot() + geom_point(aes(x=scores[,1], y=scores[,2])) + 
+  geom_text(aes(x=scores[,1], y=scores[,2],label=dataset$team)) +
+  labs(x="PC1",y="PC2")
+```
+
+```{r}
+# 3D PCA plot
+library(plotly)
+scores_df <- cbind.data.frame(scores,
+                              team = dataset$team,
+                              stringsAsFactors = FALSE
+                              )
+plot_ly(data = scores_df, x = ~PC1, y = ~PC2, z = ~PC3,
+        type = 'scatter3d',
+        mode = 'markers',
+        text = ~team)
+```
+
+```{r}
+# 2D PCA plot : study features
+ggplot() + geom_point(aes(x = loadings[, 1], y=loadings[, 2])) +
+  geom_text(aes(x = loadings[, 1], y=loadings[, 2], label=rownames(loadings))) +
+  labs(x = "Loading 1", y = "Loading 2")
+```
+
+```{r}
+biplot(pca_prcomp)
+```
