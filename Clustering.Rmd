@@ -1,0 +1,244 @@
+---
+title: "Clustering"
+author: "Kyungeun Jenny Jeon"
+date: "2023-01-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tibble)
+library(latex2exp)
+```
+
+# Introduction
+All codes and explanations come from the ISL, ESL textbooks and lecture/lab of STA521 materials. 
+
+# Key points
+
+## Purpose & Kind: 
+Clutering and grouping. 
+1) K-means Clustering
+2) Hierarchical clustering
+3) GMM (Gaussian Mixuture Model)
+4) EM algorithm
+
+## Principle: 
+1) K-means clustering : a clustering with k distinct, non-overlapping clusters. We must specify the desired number of clusters K. "Good" clustering is one for which the "within-cluster variation" is as small as possible. (Ck)
+- Disadvantage : 
+  - pre-specify the number of clusters K.
+  - K-means and EM are not guaranteed to converge to global optima.
+
+2) Hierarchical clustering : an alternative approach which does not require the pre-choice of K. (dendrogram)
+4 different linkage method : *hclust( , method = types of method)*
+- 1. Complete : Maximal intercluster dissimilarity
+- 2. Single : Minimal intercluster dissimilarity
+- 3. Average : Mean intercluster dissimilarity
+- 4. Centroid : Centroid dissmilarity
+2 different distance method : 
+- 1. Euclidean distance : *dist(datatable, method = "euclidean")*
+- 2. Correlation-based distance : *as.dist(1 - cor(t(datatable)))*
+2 different scale/non-scale options
+- 1. scaled with 1 stdev : *scale(datatable)*
+- 2. non-scaled
+- Disadvantage : 
+  - Linkage choice can affect final outputs
+
+3) GMM (Guassian Mixture Model) : an approach assuming that all clusters are in Gaussian distribution. (or assuming data comes from a mixture of Gaussians) This is better when there is no guarantee that the clusters are all the same size.
+- Use maximum likelihood to estimate the model parameters
+
+4) EM : an iterative procedure for maximizing log likelihood (GMM)
+\theta_{n+1} = \operatorname*{argmax}_\theta \ell (\theta | \theta_{n})
+
+## Validation : 
+- Clustering the noise 
+- Assigning a p-value to a cluster in order to assess whether there is more evidence for the cluster than one would expect due to chance.
+
+## Usage : 
+Reveal subgroups for EDA
+
+## Fact check :
+1) Clustering is an unsupervised learning without Y variable.
+2) Center? Not required, but usually yes
+3) Scale?(standardization?) depends on distance choice (in hierarchical)
+
+## Important Terminology :
+
+## Plots :
+- Elbow plot (WSS(Within sum of square) vs. K)
+- Silhouette plot (Avg Silhoutte vs. K)
+- fvis_nbclust() in factoextra
+- dendrogram
+
+## Process :
+
+
+## R package : 
+- kmeans(datatable, centers = #ofk, nstart = number of random assignment) : Use 20 or 50 nstart to avoid undesirable local optimum
+- hclust(dist(datatable), method = types of method) : When deciding the number of clusters, use cutree() with parameters like cutree(hclust result, number of clusters)
+- mclust()
+- fviz_nbclust() in package factoextra
+
+
+
+
+# Example
+
+## k-means clustering example
+
+```{r}
+set.seed(123)
+x <- matrix(rnorm(50*2), ncol=2)
+x[1:25,1] <- x[1:25,1] + 3
+x[1:25,2] <- x[1:25,2] - 4
+```
+```{r}
+km.out <- kmeans(x,2,nstart=20)
+km.out$cluster
+par(mfrow=c(1,2))
+plot(x, col=(km.out$cluster + 1),
+     main = "K-means Clustering Results with K=2",
+     xlab = "", ylab = "", pch = 20, cex = 2)
+```
+
+```{r}
+set.seed(123)
+km.out <- kmeans(x, 3, nstart = 20)
+km.out$tot.withinss #within-cluster sum of squares 62.43309
+km.out2 <- kmeans(x, 3, nstart = 1)
+km.out2$tot.withinss #within-cluster sum of squares 64.24859
+plot(x, col=(km.out$cluster + 1),
+     main = "K-means Clustering Results with K=3",
+     xlab = "", ylab = "", pch = 20, cex = 2)
+```
+
+## Hierarchical clustering example
+
+```{r}
+hc.complete <- hclust(dist(x), method = "complete")
+hc.average <- hclust(dist(x), method = "average")
+hc.single <- hclust(dist(x), method = "single")
+```
+```{r}
+par(mfrow = c(1,3))
+plot(hc.complete, main="Complete Linkage",
+     xlab = "", sub = "", cex = .9)
+plot(hc.single, main="Single Linkage",
+     xlab = "", sub = "", cex = .9)
+plot(hc.average, main="Average Linkage",
+     xlab = "", sub = "", cex = .9)
+```
+
+
+```{r}
+cutree(hc.complete, 2) # 2 means the number of cluster we want to get
+cutree(hc.single, 2)
+cutree(hc.average, 2)
+```
+
+```{r}
+# scaling
+xscaled <- scale(x)
+plot(hclust(dist(xscaled), method = "complete"),
+     main = "Hierarchical Clustering with Scaled Features")
+```
+
+```{r}
+# correlation-based distance
+x <- matrix(rnorm(30*3), ncol=3)
+dd <- as.dist(1-cor(t(x)))
+plot(hclust(dd, method = "complete"),
+     main = "Complete Linkage with Correlation-Based Distance",
+     xlab = "", sub = "")
+```
+
+## Iris Hierarchical example
+
+```{r}
+set.seed(123)
+X <- iris[,1:4] %>% as.matrix()
+d <- dist(X, method = "euclidean")
+HClust <- hclust(d, method = "complete")
+plot(HClust, hang=-1, cex=0.3)
+cutree(HClust, k=3)
+```
+
+```{r}
+# Result comparison
+library('ggpubr')
+plt1 <- iris %>% mutate(HClust = cutree(HClust, k=3)) %>%
+  ggplot() + geom_point(aes(Sepal.Length, Petal.Length, color = Species), size=0.8) +
+  labs(color = "True species") + theme_bw(base_size = 9)
+plt2 <- iris %>% mutate(HClust = cutree(HClust, k=3)) %>%
+  ggplot() + geom_point(aes(Sepal.Length, Petal.Length, color = as.factor(HClust)), size=0.8) +
+  labs(color = "True species") + theme_bw(base_size = 9)
+ggarrange(plt1, plt2, nrow=1, ncol=2)
+```
+
+```{r}
+library(factoextra)
+fviz_nbclust(X, kmeans) + theme_classic(base_size=8.5)
+```
+
+## NC160 Data example
+
+## GMM and EM example
+```{r}
+library(MASS)
+gen_mixture_data <- function(probs, mus, sigs, N){
+  num_points <- table(sample(1:K,prob=probs[1:K],size=N,replace=TRUE))
+  x <- matrix(NA, nrow = 0, ncol=2)
+  z <- c()
+  for (k in 1:K){
+    x <- rbind(x, mvrnorm(num_points[k], mus[k, ], sigs[,,k]))
+    z <- c(z, rep(k, num_points[k]))
+  }
+  return(list("x"=x, "z"=z))
+}
+```
+```{r}
+N <- 1000
+K <- 3
+sigs <- array(rep(NA,2*2*K), c(2,2,K))
+sigs[,,1] <- matrix(c(.25,.21,.21,.25), nrow=2, byrow=TRUE)
+sigs[,,2] <- matrix(c(.25,-.21,-.21,.25), nrow=2, byrow=TRUE)
+sigs[,,3] <- matrix(c(.25,.21,.21,.25), nrow=2, byrow=TRUE)
+probs <- c(0.1,0.4,0.5)
+mus <- matrix(c(0,0,1,1,-1,1),3,2,byrow=TRUE)
+mixture_data <- gen_mixture_data(probs, mus, sigs, N)
+x <- mixture_data$x
+z <- mixture_data$z
+
+ggplot() + geom_point(aes(x=x[,1], y=x[,2]), color=z, size=0.7) +
+  labs(x="X1",y="X2") + theme_bw(base_size = 9)
+```
+```{r}
+# kmeans
+colors = c("red","green","blue")
+cl_km <- kmeans(x, K, nstart = 25)
+z_km <- cl_km$cluster
+ggplot() + geom_point(aes(x=x[, 1], y=x[, 2], col=colors[z_km]), size = 0.7) +
+  labs(x = "X1", y = "X2") +
+  geom_point(aes(x=cl_km$centers[, 1], y=cl_km$centers[, 2]), shape='*', size=12) +
+  geom_point(aes(x=mus[1:K, 1], y=mus[1:K, 2]), shape=18, color = "purple", size = 5) +
+  theme_bw(base_size = 9)
+```
+
+```{r}
+#gmm
+library(mclust)
+model_GMM <- Mclust(x, G=3)
+z_GMM = apply(model_GMM$z, 1, which.max)
+GMM_means <- model_GMM$parameters$mean
+ggplot() + geom_point(aes(x=x[, 1], y=x[, 2], col=colors[z_GMM]), size = 0.7) +
+  labs(x = "X1", y = "X2") +
+  geom_point(aes(x=GMM_means[1, ], y=GMM_means[2, ]), shape=15, size=4) +
+  geom_point(aes(x=mus[1:K, 1], y=mus[1:K, 2]), shape=18, color = "purple", size = 5) +
+  labs(title='GMM') + theme_bw(base_size = 9)
+```
+
+
+
+
+
+
