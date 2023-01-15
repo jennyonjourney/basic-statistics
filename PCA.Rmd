@@ -2,7 +2,7 @@
 title: "PCA"
 author: "Kyungeun Jenny Jeon"
 date: "2023-01-09"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
