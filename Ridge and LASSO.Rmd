@@ -1,0 +1,44 @@
+---
+title: "Ridge and LASSO"
+author: "Kyungeun Jenny Jeon"
+date: "2023-01-15"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tibble)
+library(latex2exp)
+```
+
+# Introduction
+All codes and explanations come from the ISL, ESL textbooks and lecture/lab of STA521 materials. 
+
+# Key points
+
+## Purpose & Kind: 
+
+## Principle: 
+
+## Validation : 
+
+## Usage : 
+
+## Fact check :
+
+## Important Terminology :
+
+## Plots :
+
+## Process :
+
+
+## R package : 
+
+
+
+# Example
+
+## Simple linear regression
+
+

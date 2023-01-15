@@ -35,6 +35,8 @@ Clutering and grouping.
 - 2. Single : Minimal intercluster dissimilarity
 - 3. Average : Mean intercluster dissimilarity
 - 4. Centroid : Centroid dissmilarity
+- single linkage will tend to yield *trailing* clusters while complete and average linkage tend to yield more balanced, attractive clusters.
+
 2 different distance method : 
 - 1. Euclidean distance : *dist(datatable, method = "euclidean")*
 - 2. Correlation-based distance : *as.dist(1 - cor(t(datatable)))*
@@ -71,7 +73,10 @@ Reveal subgroups for EDA
 - dendrogram
 
 ## Process :
-
+1) Scale(data)
+2) hclust() or other clustering method
+3) dendrogram
+4) cutree
 
 ## R package : 
 - kmeans(datatable, centers = #ofk, nstart = number of random assignment) : Use 20 or 50 nstart to avoid undesirable local optimum
@@ -180,7 +185,70 @@ library(factoextra)
 fviz_nbclust(X, kmeans) + theme_classic(base_size=8.5)
 ```
 
-## NC160 Data example
+
+## NCI60 Data example
+Genomic data analysis. In particular, PCA and Hierarchical clustering are popular tools. This illustration is the NCI160 cancer cell line microarray data, which consists of 6,830 gene expression measurements on 64 cancer cell lines.
+```{r}
+library(ISLR2)
+NCI60 <- as_tibble(NCI60)
+nci.labs <- NCI60$labs
+nci.data <- NCI60$data
+dim(nci.data) #64 6830, in table, 64 rows and 6830 columns
+dim(nci.labs) #NULL cancer type 
+length(nci.labs) #64
+
+table(nci.labs) # 14 different cancer type
+```
+
+### 1) PCA
+```{r}
+# standardization with scale=TRUE
+pr.out <- prcomp(nci.data, scale=TRUE)
+length(nci.labs)
+
+# simple function that assigns a distinct color to each element of numeric vector (assign color of each of the 64 cell lines) 즉 64개의 cell lines 변수를 가지고 6830개의 전체 데이터를 이용하여 14개 cancer 종류 감안하여 clustering하기
+Cols <- function(vec){
+  cols <- rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])
+}
+
+par(mfrow = c(1,2))
+plot(pr.out$x[,1:2], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z2")
+plot(pr.out$x[,c(1,3)], col=Cols(nci.labs), pch=19, xlab="Z1", ylab="Z3")
+```
+```{r}
+# screeplot and PVE: 7 PC
+summary(pr.out)
+plot(pr.out)
+pve <- 100 * pr.out$sdev^2 / sum(pr.out$sdev^2)
+par(mfrow=c(1,2))
+plot(pve,type="o",ylab="PVE",xlab="Principal component",col="blue")
+plot(cumsum(pve), type="o",ylab="Cumulative PVE",xlab="Principal Component",col="brown3")
+```
+```{r}
+# Clustering
+sd.data <- scale(nci.data)
+par(mforw=c(1,3))
+data.dist <- dist(sd.data)
+plot(hclust(data.dist),xlab="",sub="",ylab="",labels=nci.labs,main="Complete Linkage")
+plot(hclust(data.dist),method="average",xlab="",sub="",ylab="",labels=nci.labs,main="Average Linkage")
+plot(hclust(data.dist),method="single",xlab="",sub="",ylab="",labels=nci.labs,main="Single Linkage")
+```
+
+```{r}
+hc.out <- hclust(dist(sd.data))
+hc.clusters <- cutree(hc.out,4)
+table(hc.clusters,nci.labs)
+```
+
+```{r}
+par(mfrow=c(1,1))
+plot(hc.out,labels=nci.labs)
+abline(h=139,col="red")
+```
+```{r}
+hc.out
+```
 
 ## GMM and EM example
 ```{r}

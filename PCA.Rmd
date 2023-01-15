@@ -34,7 +34,7 @@ When you face with a large set of correlated variables, PCA make a smaller numbe
 1)  Loadings : A concept of weights of features for PC. The sum of loadings is 1. (Confusing but called PC directions)
 -   Formula: \maximize\*{\*\$\\phi11,..,\$\\phip1}{\\\\1/n\$\$\\sum\_{n=1}\^{n} (\$\$\\sum{j=1}\\\^{p} \$\$\\phij1 xij)}\^2 subject to \$\$\sum\_{j=1}\^{p} \$\$\phij1\^2 = 1
 
-2)  PC : A noramlized linear combination of features. (Confusing but called PC scores)
+2)  PC : A normalized linear combination of features. (Confusing but called PC scores)
 
 3)  The way of choosing the right number of PC
 -   Screeplot (elbow)
