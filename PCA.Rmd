@@ -6,13 +6,13 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dev=c('png', 'postscript'))
 library(tibble)
 library(latex2exp)
 ```
 
 # Introduction
-All codes and explanations come from the ISL, ESL textbooks and lecture/lab of STA521 materials. 
+All codes and explanations come from the ISL, ESL textbooks, and lecture/lab of STA521 materials. 
 
 # Key points
 
@@ -20,41 +20,41 @@ All codes and explanations come from the ISL, ESL textbooks and lecture/lab of S
 Dimension reduction, while retaining as much as possible of the variation in the current data
 
 ## Principle: 
-Find the 'most' uncorrelated varible sets using the orthogonality of PC(principal component) directions. PC1 is the maximized variance principal component and PC2 is orthogonal with PC1.
+Find the 'most' uncorrelated variable sets using the orthogonality of PC(principal component) directions. PC1 is the maximized variance principal component and PC2 is orthogonal with PC1.
 
 ## Usage : 
-When you face with a large set of correlated variables, PCA make a smaller number of representative variables.
+When you are faced with a large set of correlated variables, PCA makes a smaller number of representative variables.
 
 ## Fact check :
-1) PCA is an unsupervised learning without Y variable.
+1) PCA is an unsupervised learning without a Y variable.
 2) Center? Yes. Needed.
 3) Scale? Yes. Standardization
 
 ## Important Terminology :
-1)  Loadings : A concept of weights of features for PC. The sum of loadings is 1. (Confusing but called PC directions)
+1)  Loadings: A concept of weights of features for PC. The sum of loadings is 1. (Confusing but called PC directions)
 -   Formula: \maximize\*{\*\$\\phi11,..,\$\\phip1}{\\\\1/n\$\$\\sum\_{n=1}\^{n} (\$\$\\sum{j=1}\\\^{p} \$\$\\phij1 xij)}\^2 subject to \$\$\sum\_{j=1}\^{p} \$\$\phij1\^2 = 1
 
-2)  PC : A normalized linear combination of features. (Confusing but called PC scores)
+2)  PC: A normalized linear combination of features. (Confusing but called PC scores)
 
 3)  The way of choosing the right number of PC
--   Screeplot (elbow)
+-   Scree plot (elbow)
 -   Kaiser rule
 -   Predetermined amount of variation (PVE) 
 \frac{$\lambda_{1} + ... + $\lambda_{l}}{$\sum_{i=1}^{d}($\lambda_{i})}
 
 ## Plots :
-1)  Study samples : Scatter plots of data on PC1 vs PC2
-2)  Study features : Scatter plots of loadings
+1)  Study samples: Scatter plots of data on PC1 vs PC2
+2)  Study features: Scatter plots of loadings
 
 ## Process :
 1)  Load data
-2)  Standardize each variable to have mean zero and standard deviation one.
-3)  Make Covariance matrix
+2)  Standardize each variable to have a mean zero and a standard deviation one.
+3)  Make a Covariance matrix
 4)  Find the eigenvalues and eigenvectors.
-5)  Order the eigenvalues from big to small one.
+5)  Order the eigenvalues from big to small.
 -   find a direction v such that maximizes the variance
--   PC1 is the eigenvector of the covariance matrix with largest eigenvalue.
-6)  Use scree plots to decide the number of PC.
+-   PC1 is the eigenvector of the covariance matrix with the largest eigenvalue.
+6)  Use scree plots to decide the number of PCs.
 
 ## R package : prcomp(dataname, scale=TRUE)
 
